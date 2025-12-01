@@ -41,25 +41,25 @@ blueprint:
           unit_of_measurement: "%"
           mode: slider
 
-    warmest_color_temp:
+    warmest_color_temp_kelvin:
       name: Warmest color temp (night)
-      description: Highest mired value (warmest) used at night.
-      default: 370
+      description: Warmest Kelvin value used at night.
+      default: 2700
       selector:
         number:
-          min: 153
-          max: 500
-          unit_of_measurement: "mired"
+          min: 1500
+          max: 7000
+          unit_of_measurement: "K"
 
-    coolest_color_temp:
+    coolest_color_temp_kelvin:
       name: Coolest color temp (midday)
-      description: Lowest mired value (coolest) used at midday.
-      default: 153
+      description: Coolest Kelvin value used at midday.
+      default: 6500
       selector:
         number:
-          min: 153
-          max: 500
-          unit_of_measurement: "mired"
+          min: 1500
+          max: 7000
+          unit_of_measurement: "K"
 
 mode: restart
 
@@ -67,8 +67,8 @@ variables:
   light_entity: !input light_entity
   min_brightness: !input min_brightness
   max_brightness: !input max_brightness
-  warmest_color_temp: !input warmest_color_temp
-  coolest_color_temp: !input coolest_color_temp
+  warmest_color_temp_kelvin: !input warmest_color_temp_kelvin
+  coolest_color_temp_kelvin: !input coolest_color_temp_kelvin
 
   elevation_ratio: >-
     {% set elevation = state_attr('sun.sun', 'elevation') | float(0) %}
@@ -88,9 +88,9 @@ variables:
     {% set value = min_brightness + (max_brightness - min_brightness) * ratio %}
     {{ value | round(0) | int }}
 
-  color_temp_mired: >-
+  color_temp_kelvin: >-
     {% set ratio = elevation_ratio | float(0) %}
-    {% set value = warmest_color_temp + (coolest_color_temp - warmest_color_temp) * ratio %}
+    {% set value = warmest_color_temp_kelvin + (coolest_color_temp_kelvin - warmest_color_temp_kelvin) * ratio %}
     {{ value | round(0) | int }}
 
 trigger:
@@ -106,4 +106,4 @@ action:
       entity_id: "{{ light_entity }}"
     data:
       brightness_pct: "{{ brightness_pct }}"
-      color_temp: "{{ color_temp_mired }}"
+      kelvin: "{{ color_temp_kelvin }}"
