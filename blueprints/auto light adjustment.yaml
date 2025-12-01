@@ -1,0 +1,76 @@
+blueprint:
+  name: Auto light adjustment
+  description: >
+    Sets a light's brightness and color temperature when it turns on,
+    based on the sun elevation (no light sensor required).
+  domain: automation
+  input:
+    light_entity:
+      name: Light entity
+      description: The light to control.
+      selector:
+        entity:
+          domain: light
+
+    min_brightness:
+      name: Minimum brightness (night)
+      description: Brightness when it's darkest outside.
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
+    max_brightness:
+      name: Maximum brightness (midday)
+      description: Brightness when the sun is highest.
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "%"
+          mode: slider
+
+    warmest_color_temp:
+      name: Warmest color temp (night)
+      description: Highest mired value (warmest) used at night.
+      default: 370
+      selector:
+        number:
+          min: 153
+          max: 500
+          unit_of_measurement: "mired"
+
+    coolest_color_temp:
+      name: Coolest color temp (midday)
+      description: Lowest mired value (coolest) used at midday.
+      default: 153
+      selector:
+        number:
+          min: 153
+          max: 500
+          unit_of_measurement: "mired"
+
+mode: restart
+
+variables:
+  light_entity: !input light_entity
+  min_brightness: !input min_brightness
+  max_brightness: !input max_brightness
+  warmest_color_temp: !input warmest_color_temp
+  coolest_color_temp: !input coolest_color_temp
+
+  brightness_pct: >-
+    {% set elevation = state_attr('sun.sun', 'elevation') | float(0) %}
+    {% set min_elev = -6 %}
+    {% set max_elev = 60 %}
+    {% set e = elevation %}
+    {% if e < min_elev %}
+      {% set e = min_elev %}
+    {% elif e > max_elev %}
+      {% set e = max_elev %}
+    {% endif %}
+    {% set ratio = (e - min_elev) / (max_elev - min
