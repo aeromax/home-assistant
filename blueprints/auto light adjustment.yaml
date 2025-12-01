@@ -5,6 +5,13 @@ blueprint:
     based on the sun elevation (no light sensor required).
   domain: automation
   input:
+    trigger_entity:
+      name: Trigger entity
+      description: The entity that triggers this automation when it turns on.
+      selector:
+        entity:
+          domain: light
+
     light_entity:
       name: Light entity
       description: The light to control.
@@ -88,7 +95,7 @@ variables:
 
 trigger:
   - platform: state
-    entity_id: !input light_entity
+    entity_id: !input trigger_entity
     to: "on"
 
 condition: []
