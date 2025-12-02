@@ -1,0 +1,46 @@
+alias: Match light color/brightness to another
+description: Copy brightness and color temperature from a source light to a target light.
+mode: restart
+
+fields:
+  source_lights:
+    description: One or more light entities to copy from (first in list is used).
+    example:
+      - light.living_room_lamp
+      - light.lamp_2
+  source_light:
+    description: Optional single source light (legacy single-entity input).
+    example: light.living_room_lamp
+  target_lights:
+    description: One or more light entities to copy to.
+    example:
+      - light.dining_room_lamp
+      - light.table_lamp
+  target_light:
+    description: Optional single target light (legacy single-entity input).
+    example: light.dining_room_lamp
+
+sequence:
+  - variables:
+      # Accept string or list for sources/targets, fallback to legacy single inputs; use the first source entry.
+      source_entities: "{{ source_lights | default(source_light) }}"
+      target_entities: "{{ target_lights | default(target_light) }}"
+      source_entity: "{{ (expand(source_entities) | list | first) if source_entities is not none else none }}"
+
+      source_brightness: "{{ source_entity.attributes.brightness if source_entity else none }}"
+      source_kelvin: >-
+        {% set kelvin = source_entity.attributes.color_temp_kelvin if source_entity else none %}
+        {% if kelvin is none %}
+          {% set mired = source_entity.attributes.color_temp if source_entity else none %}
+          {% if mired is not none and mired != 0 %}
+            {% set kelvin = (1000000 / mired) | round(0) | int %}
+          {% endif %}
+        {% endif %}
+        {{ kelvin }}
+
+  - service: light.turn_on
+    target:
+      entity_id: "{{ target_entities }}"
+    data:
+      brightness: "{{ source_brightness | default(omit) }}"
+      kelvin: "{{ source_kelvin | default(omit) }}"

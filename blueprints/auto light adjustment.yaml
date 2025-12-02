@@ -7,17 +7,19 @@ blueprint:
   input:
     trigger_entity:
       name: Trigger entity
-      description: The entity that triggers this automation when it turns on.
+      description: One or more entities that trigger this automation when they turn on.
       selector:
         entity:
           domain: light
+          multiple: true
 
     light_entity:
       name: Light entity
-      description: The light to control.
+      description: One or more lights to control.
       selector:
         entity:
           domain: light
+          multiple: true
 
     min_brightness:
       name: Minimum brightness (night)
@@ -103,7 +105,7 @@ condition: []
 action:
   - service: light.turn_on
     target:
-      entity_id: "{{ light_entity }}"
+      entity_id: !input light_entity
     data:
       brightness_pct: "{{ brightness_pct }}"
       kelvin: "{{ color_temp_kelvin }}"

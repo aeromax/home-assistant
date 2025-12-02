@@ -1,0 +1,77 @@
+alias: Living Room Lights and TV Sync
+description: >
+  Respond to living room light and TV state changes by coordinating the
+  light adjustment automation or activating video mode scenes.
+mode: single
+
+trigger:
+  - id: lights_on
+    platform: state
+    entity_id: light.living_room_lights
+    to: "on"
+  - id: lights_off
+    platform: state
+    entity_id: light.living_room_lights
+    to: "off"
+  - id: tv_on
+    platform: state
+    entity_id: media_player.living_room_tv_2
+    to: "on"
+  - id: tv_off
+    platform: state
+    entity_id: media_player.living_room_tv_2
+    to: "off"
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: lights_on
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: media_player.living_room_tv_2
+                    state: "off"
+                sequence:
+                  - service: automation.trigger
+                    target:
+                      entity_id: automation.living_room_light_adjustment
+              - conditions:
+                  - condition: state
+                    entity_id: media_player.living_room_tv_2
+                    state: "on"
+                sequence:
+                  - service: scene.turn_on
+                    target:
+                      entity_id: scene.one_click_living_room_video_mode
+
+      - conditions:
+          - condition: trigger
+            id: tv_on
+        sequence:
+          - service: scene.turn_on
+            target:
+              entity_id: scene.one_click_living_room_video_mode
+
+      - conditions:
+          - condition: trigger
+            id: tv_off
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: state
+                    entity_id: light.living_room_lights
+                    state: "on"
+                sequence:
+                  - service: automation.trigger
+                    target:
+                      entity_id: automation.living_room_light_adjustment
+              - conditions:
+                  - condition: state
+                    entity_id: light.living_room_lights
+                    state: "off"
+                sequence:
+                  - service: light.turn_off
+                    target:
+                      entity_id: light.living_room_tv_light
